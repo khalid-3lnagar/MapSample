@@ -3,14 +3,21 @@ package com.example.khalid.mapandplacessample;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import android.support.v4.content.SharedPreferencesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -23,6 +30,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOError;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
     private static final String TAG = "MapActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 4546;
@@ -30,9 +43,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final float DEFAULT_ZOOM = 16f;
 
+    //Views
+    private EditText mSearchTxt;
     private boolean mLocationPermissionGranted = false;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProvider;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_map);
+
+        mSearchTxt = findViewById(R.id.input_search);
+
+        getLocationPermission();
+
+
+    }
+
+    private void initMap() {
+
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -48,15 +83,47 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            init();
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
-        getLocationPermission();
 
+    private void init() {
+        Log.d(TAG, "init: inintilizing..");
+        mSearchTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH
+                        || actionId == EditorInfo.IME_ACTION_DONE
+                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER) {
+                    //execute search method
+                    geoLocate();
+                }
+
+
+                return false;
+            }
+
+            private void geoLocate() {
+                Log.d(TAG, "geoLocate: geo locating");
+                String searchString = mSearchTxt.getText().toString();
+                Geocoder geocoder = new Geocoder(MapActivity.this);
+                List<Address> list = new ArrayList<>();
+                try {
+                    list = geocoder.getFromLocationName(searchString, 1);
+                    if (list.size() > 0) {
+                        Address address = list.get(0);
+                        Log.d(TAG, "geoLocate: Address is " + address.toString());
+                        LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                        moveCamera(latLng, DEFAULT_ZOOM);
+//                     Toast.makeText(MapActivity.this, "Address is "+address.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "geoLocate: IO Exception " + e.getMessage());
+
+                }
+            }
+        });
     }
 
 
@@ -98,16 +165,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void moveCamera(LatLng latLng, float zoom) {
         Log.d(TAG, "moveCamera: moving  the camera to Lat= " + latLng.latitude + "Lon =" + latLng.longitude);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
+        //without animation
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+
+
+        //with animate
+        mMap.animateCamera((CameraUpdateFactory.newLatLngZoom(latLng, zoom)));
     }
 
-    private void initMap() {
-
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
 
     private void getLocationPermission() {
         String[] permissions = {FINE_LOCATION, COARSE_LOCATION};

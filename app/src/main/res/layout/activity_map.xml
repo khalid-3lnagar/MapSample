@@ -30,7 +30,8 @@
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
             android:layout_marginStart="10dp"
-            android:src="@drawable/ic_magnify" />
+            android:src="@drawable/ic_magnify"
+            tools:ignore="ContentDescription" />
 
         <EditText
             android:id="@+id/input_search"
@@ -38,13 +39,16 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="5dp"
             android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
             android:layout_toEndOf="@id/img_magnify"
             android:layout_toRightOf="@id/img_magnify"
             android:background="@null"
             android:hint="@string/search_hint"
+            android:inputType="text"
             android:textColor="@android:color/black"
             android:textSize="15sp"
-            android:inputType="text" />
+            android:imeOptions="actionSearch"/>
     </RelativeLayout>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
