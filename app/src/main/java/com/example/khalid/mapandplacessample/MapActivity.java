@@ -15,8 +15,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +30,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -45,6 +49,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     //Views
     private EditText mSearchTxt;
+    private ImageView mGps;
     private boolean mLocationPermissionGranted = false;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProvider;
@@ -58,6 +63,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mSearchTxt = findViewById(R.id.input_search);
 
         getLocationPermission();
+        mGps = findViewById(R.id.img_gps);
 
 
     }
@@ -115,13 +121,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         Address address = list.get(0);
                         Log.d(TAG, "geoLocate: Address is " + address.toString());
                         LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-                        moveCamera(latLng, DEFAULT_ZOOM);
+                        moveCamera(latLng, DEFAULT_ZOOM, "hello from " + address.getCountryName());
 //                     Toast.makeText(MapActivity.this, "Address is "+address.toString(), Toast.LENGTH_SHORT).show();
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "geoLocate: IO Exception " + e.getMessage());
 
                 }
+            }
+        });
+        mGps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getDeviceLocation();
             }
         });
     }
@@ -143,7 +155,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             Location currentLocation = (Location) task.getResult();
                             moveCamera(
                                     new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
-                                    DEFAULT_ZOOM);
+                                    DEFAULT_ZOOM, "my location");
                         } else {
                             Log.d(TAG, "onComplete: last location is null");
                             Toast.makeText(MapActivity.this, "unable to get current location ", Toast.LENGTH_SHORT).show();
@@ -163,15 +175,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     }
 
-    private void moveCamera(LatLng latLng, float zoom) {
+    private void moveCamera(LatLng latLng, float zoom, String title) {
         Log.d(TAG, "moveCamera: moving  the camera to Lat= " + latLng.latitude + "Lon =" + latLng.longitude);
 
         //without animation
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
-
-
         //with animate
+
         mMap.animateCamera((CameraUpdateFactory.newLatLngZoom(latLng, zoom)));
+
+        if (!title.equals("my location")) {
+
+            MarkerOptions options = new MarkerOptions().position(latLng).title(title);
+            mMap.addMarker(options);
+        }
+
     }
 
 

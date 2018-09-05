@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MapActivity">
 
+
     <RelativeLayout
         android:id="@+id/rel_layout"
         android:layout_width="match_parent"
@@ -37,19 +38,20 @@
             android:id="@+id/input_search"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="5dp"
-            android:layout_marginStart="5dp"
             android:layout_marginEnd="10dp"
+            android:layout_marginLeft="5dp"
             android:layout_marginRight="10dp"
+            android:layout_marginStart="5dp"
             android:layout_toEndOf="@id/img_magnify"
             android:layout_toRightOf="@id/img_magnify"
             android:background="@null"
             android:hint="@string/search_hint"
+            android:imeOptions="actionSearch"
             android:inputType="text"
             android:textColor="@android:color/black"
-            android:textSize="15sp"
-            android:imeOptions="actionSearch"/>
+            android:textSize="15sp" />
     </RelativeLayout>
+
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -60,4 +62,31 @@
         tools:context=".MapsActivity"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="520dp" />
+
+    <android.support.v7.widget.CardView
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/rel_layout"
+     android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginRight="12dp"
+        android:background="@color/cardview_light_background"
+        android:drawSelectorOnTop="true"
+        app:cardCornerRadius="20dp">
+
+        <ImageView
+            android:id="@+id/img_gps"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="5dp"
+            android:scaleType="centerCrop"
+
+            android:src="@drawable/ic_gps" />
+
+    </android.support.v7.widget.CardView>
+
 </RelativeLayout>
