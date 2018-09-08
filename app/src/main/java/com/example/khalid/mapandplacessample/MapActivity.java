@@ -133,6 +133,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mGps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d(TAG, "onClick: clicked gps button");
                 getDeviceLocation();
             }
         });
@@ -145,7 +146,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         try {
             if (mLocationPermissionGranted) {
                 Log.d(TAG, "getDeviceLocation: getting last location ");
-                Task location = mFusedLocationProvider.getLastLocation();
+
+                final Task location = mFusedLocationProvider.getLastLocation();
 
                 location.addOnCompleteListener(new OnCompleteListener() {
                     @Override
@@ -153,12 +155,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             Log.d(TAG, "onComplete: location is here ");
                             Location currentLocation = (Location) task.getResult();
-                            moveCamera(
-                                    new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
-                                    DEFAULT_ZOOM, "my location");
+
+                            if (currentLocation != null) {
+                                moveCamera(
+                                        new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
+                                        DEFAULT_ZOOM, "my location");
+                            } else {
+
+                                Log.d(TAG, "onComplete: last location is null");
+                                Toast.makeText(MapActivity.this, "unable to get current location make sure Gps is on  ", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Log.d(TAG, "onComplete: last location is null");
-                            Toast.makeText(MapActivity.this, "unable to get current location ", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MapActivity.this, "unable to get current location make sure Gps is on ", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
