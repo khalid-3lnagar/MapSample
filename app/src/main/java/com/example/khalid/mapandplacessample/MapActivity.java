@@ -2,6 +2,7 @@ package com.example.khalid.mapandplacessample;
 
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -17,6 +18,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,11 +28,14 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -48,12 +54,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final float DEFAULT_ZOOM = 16f;
 
     //Views
-    private EditText mSearchTxt;
+    private AutoCompleteTextView mSearchTxt;
     private ImageView mGps;
     private boolean mLocationPermissionGranted = false;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProvider;
 
+    // The entry points to the Places API.
+    private GeoDataClient mGeoDataClient;
+    private PlaceAutocompleteAdapter mAutocompleteAdapter;
+    private final LatLngBounds mLatLngBounds = new LatLngBounds(new LatLng(-40, -168),
+            new LatLng(71, 136));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,9 +104,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-
     private void init() {
         Log.d(TAG, "init: inintilizing..");
+        mGeoDataClient = Places.getGeoDataClient(this);
+        mAutocompleteAdapter = new PlaceAutocompleteAdapter(this, mGeoDataClient, mLatLngBounds, null);
+        mSearchTxt.setAdapter(mAutocompleteAdapter);
+
         mSearchTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -123,6 +137,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
                         moveCamera(latLng, DEFAULT_ZOOM, "hello from " + address.getCountryName());
 //                     Toast.makeText(MapActivity.this, "Address is "+address.toString(), Toast.LENGTH_SHORT).show();
+                        hideSoftInput();
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "geoLocate: IO Exception " + e.getMessage());
@@ -138,7 +153,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
     }
-
 
     private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the device current Location ");
@@ -201,7 +215,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     }
 
-
     private void getLocationPermission() {
         String[] permissions = {FINE_LOCATION, COARSE_LOCATION};
 
@@ -223,6 +236,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
     }
+
+    private void hideSoftInput() {
+        InputMethodManager mgr = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        mgr.hideSoftInputFromWindow(mSearchTxt.getWindowToken(), 0);
+
+
+    }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
